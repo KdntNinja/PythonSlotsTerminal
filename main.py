@@ -148,7 +148,14 @@ class SlotMachine:
 
 
 def get_credits() -> int:
-    return int(input("Enter credits: "))
+    try:
+        credits = int(input("Enter credits: "))
+        if credits < 1:
+            raise ValueError
+        return credits
+    except ValueError:
+        print("Please enter a valid positive integer.")
+        return get_credits()
 
 
 if __name__ == "__main__":
