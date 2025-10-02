@@ -4,17 +4,21 @@ import math
 from typing import List, Dict, Tuple
 from enum import Enum
 
+
 class SpecialSymbol(Enum):
     BOMB = "💣"
     SKULL = "💀"
     X = "❌"
 
+
 class SlotMachine:
+    # fmt: off
     SYMBOLS = [
         "🍇", "🍈", "🍉", "🍊", "🍋", "🍌", "🍍", "🥭", "🍎",
         "🍏", "🍐", "🍑", "🍒", "🍓", "🫐 ", "🥝", "🍅", "🥥",
         SpecialSymbol.BOMB.value, SpecialSymbol.SKULL.value, SpecialSymbol.X.value,
     ]
+    # fmt: on
 
     COLOURS: Dict[str, List[str]] = {
         "red": ["🍉", "🍎", "🍒", "🍓", "🍅", SpecialSymbol.X.value],
@@ -158,6 +162,7 @@ class SlotMachine:
         print("Thanks for playing!")
         exit(0)
 
+
 def get_credits() -> int:
     while True:
         try:
@@ -167,6 +172,7 @@ def get_credits() -> int:
             return credits
         except ValueError:
             print("Please enter a valid positive integer.")
+
 
 if __name__ == "__main__":
     credits = get_credits()
