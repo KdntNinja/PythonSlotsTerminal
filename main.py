@@ -72,14 +72,14 @@ class SlotMachine:
         spaces_left = " " * left
         spaces_right = " " * right
 
-        print(f"{self.os}{self.rs}" * 6 + f"{self.os}")
+        print(
+            f"{self.os}{self.rs}{self.os}{self.rs}{self.os}{self.rs}{self.os}{self.rs}{self.os}{self.rs}{self.os}"
+        )
         print(f"{self.jackpot_type}")
         print(f"{self.os}     {self.slot1} {self.slot2} {self.slot3}     {self.os}")
         print(f"{self.mult_type}")
         print(
-            f"{self.os}     Credits:     {self.os}\n"
-            f"{self.rs}{spaces_left}{credit_str}{spaces_right}{self.rs}\n"
-            f"{self.os}{self.rs}" * 6 + f"{self.os}"
+            f"{self.os}     Credits:     {self.os}\n{self.rs}{spaces_left}{credit_str}{spaces_right}{self.rs}\n{self.os}{self.rs}{self.os}{self.rs}{self.os}{self.rs}{self.os}{self.rs}{self.os}{self.rs}{self.os}"
         )
 
     def spin_slots(self) -> List[str]:
