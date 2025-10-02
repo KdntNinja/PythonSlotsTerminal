@@ -1,43 +1,54 @@
 import random
 import time
 import math
-from typing import List, Dict
+from typing import List, Dict, Tuple
+from enum import Enum
 
+class SpecialSymbol(Enum):
+    BOMB = "💣"
+    SKULL = "💀"
+    X = "❌"
 
 class SlotMachine:
-    # fmt: off
     SYMBOLS = [
-        "🍇", "🍈", "🍉",
-        "🍊", "🍋", "🍌",
-        "🍍", "🥭", "🍎",
-        "🍏", "🍐", "🍑",
-        "🍒", "🍓", "🫐 ",
-        "🥝", "🍅", "🥥",
-        "💣", "💀", "❌",
+        "🍇", "🍈", "🍉", "🍊", "🍋", "🍌", "🍍", "🥭", "🍎",
+        "🍏", "🍐", "🍑", "🍒", "🍓", "🫐 ", "🥝", "🍅", "🥥",
+        SpecialSymbol.BOMB.value, SpecialSymbol.SKULL.value, SpecialSymbol.X.value,
     ]
-    # fmt: on
 
     COLOURS: Dict[str, List[str]] = {
-        "red": ["🍉", "🍎", "🍒", "🍓", "🍅", "❌"],
+        "red": ["🍉", "🍎", "🍒", "🍓", "🍅", SpecialSymbol.X.value],
         "orange": ["🍊", "🍍", "🥭", "🍑"],
         "yellow": ["🍋", "🍌"],
         "green": ["🍈", "🍏", "🍐", "🥝"],
-        "purple": ["🍇", "🫐 ", "💣"],
+        "purple": ["🍇", "🫐 ", SpecialSymbol.BOMB.value],
     }
 
-    SPECIAL_SYMBOLS = ["💣", "💀", "❌"]
-    PIRATE_SYMBOLS = ["💀", "❌", "🥥"]
+    SPECIAL_SYMBOLS = [s.value for s in SpecialSymbol]
+    PIRATE_SYMBOLS = [SpecialSymbol.SKULL.value, SpecialSymbol.X.value, "🥥"]
+
+    SPIN_COST = 1
 
     def __init__(self, credits: int):
         self.os = "🟨"
         self.rs = "🟥"
         self.credits = credits
-        self.slot1: str = ""
-        self.slot2: str = ""
-        self.slot3: str = ""
+        self._slots: List[str] = ["", "", ""]
         self.jackpot_type: str = ""
         self.mult_type: str = ""
         self.jackpot: bool = False
+
+    @property
+    def slot1(self) -> str:
+        return self._slots[0]
+
+    @property
+    def slot2(self) -> str:
+        return self._slots[1]
+
+    @property
+    def slot3(self) -> str:
+        return self._slots[2]
 
     def colour_check(self, s1: str, s2: str, s3: str) -> bool:
         for colour_group in self.COLOURS.values():
@@ -57,18 +68,19 @@ class SlotMachine:
         spaces_left = " " * left
         spaces_right = " " * right
 
-        print(
-            f"{self.os}{self.rs}{self.os}{self.rs}{self.os}{self.rs}{self.os}{self.rs}{self.os}{self.rs}{self.os}"
-        )
+        print(f"{self.os}{self.rs}" * 6 + f"{self.os}")
         print(f"{self.jackpot_type}")
         print(f"{self.os}     {self.slot1} {self.slot2} {self.slot3}     {self.os}")
         print(f"{self.mult_type}")
         print(
-            f"{self.os}     Credits:     {self.os}\n{self.rs}{spaces_left}{credit_str}{spaces_right}{self.rs}\n{self.os}{self.rs}{self.os}{self.rs}{self.os}{self.rs}{self.os}{self.rs}{self.os}{self.rs}{self.os}"
+            f"{self.os}     Credits:     {self.os}\n"
+            f"{self.rs}{spaces_left}{credit_str}{spaces_right}{self.rs}\n"
+            f"{self.os}{self.rs}" * 6 + f"{self.os}"
         )
 
     def spin_slots(self) -> List[str]:
-        return [random.choice(self.SYMBOLS) for _ in range(3)]
+        self._slots = [random.choice(self.SYMBOLS) for _ in range(3)]
+        return self._slots
 
     @staticmethod
     def format_jackpot(jackpot_message: str, emoji: str) -> str:
@@ -78,63 +90,60 @@ class SlotMachine:
         spaces = " " * (spaces_needed // 2)
         return f"{emoji}{spaces}{jackpot_message}{spaces}{emoji}"
 
-    def evaluate_spin(self) -> tuple[int, str, str, bool]:
-        self.jackpot_type: str = ""
-        self.mult_type: str = ""
-        self.jackpot: bool = False
+    def evaluate_spin(self) -> Tuple[int, str, str, bool]:
+        self.jackpot_type = ""
+        self.mult_type = ""
+        self.jackpot = False
 
-        match (self.slot1, self.slot2, self.slot3):
-            case ("💣", "💣", "💣"):
-                self.credits -= math.ceil(self.credits / 2)
-                self.jackpot_type = self.format_jackpot("CREDIT BOMB", "🔥")
-                self.mult_type = self.format_jackpot("÷ 2", "💣")
-                self.jackpot = True
-            case ("💀", "💀", "💀"):
-                self.credits -= 667
-                self.jackpot_type = self.format_jackpot("CREDIT SKULL", "🔥")
-                self.mult_type = self.format_jackpot("- 667", "💀")
-                self.jackpot = True
-            case ("❌", "❌", "❌"):
-                self.credits -= 5000
-                self.jackpot_type = self.format_jackpot("CREDIT X", "🔥")
-                self.mult_type = self.format_jackpot("- 5000", "❌")
-                self.jackpot = True
-            case _ if all(
-                s in self.SPECIAL_SYMBOLS for s in [self.slot1, self.slot2, self.slot3]
-            ):
-                self.credits -= 50
-                self.jackpot_type = self.format_jackpot("OH NO...", "❌")
-                self.mult_type = self.format_jackpot("- 50", "💣")
-                self.jackpot = True
-            case _ if self.slot1 == self.slot2 == self.slot3:
-                self.credits += 500
-                self.jackpot_type = self.format_jackpot("CREDIT JACKPOT", "🎰")
-                self.mult_type = self.format_jackpot("+ 500", "🎰")
-                self.jackpot = True
-            case _ if self.colour_check(self.slot1, self.slot2, self.slot3):
-                self.credits += 10
-                self.jackpot_type = self.format_jackpot("COLOUR JACKPOT", "🎰")
-                self.mult_type = self.format_jackpot("+ 10", "🎰")
-                self.jackpot = True
-            case _ if all(
-                s in self.PIRATE_SYMBOLS for s in [self.slot1, self.slot2, self.slot3]
-            ):
-                self.credits += 250
-                self.jackpot_type = self.format_jackpot("PIRATE JACKPOT", "🎰")
-                self.mult_type = self.format_jackpot("+ 250", "🦴")
-                self.jackpot = True
-            case _:
-                self.jackpot_type = self.format_jackpot("", self.rs)
-                self.mult_type = self.format_jackpot("", self.rs)
-                self.jackpot = False
+        s1, s2, s3 = self._slots
 
-        self.credits -= 1
+        if (s1, s2, s3) == (SpecialSymbol.BOMB.value,) * 3:
+            self.credits -= math.ceil(self.credits / 2)
+            self.jackpot_type = self.format_jackpot("CREDIT BOMB", "🔥")
+            self.mult_type = self.format_jackpot("÷ 2", SpecialSymbol.BOMB.value)
+            self.jackpot = True
+        elif (s1, s2, s3) == (SpecialSymbol.SKULL.value,) * 3:
+            self.credits -= 667
+            self.jackpot_type = self.format_jackpot("CREDIT SKULL", "🔥")
+            self.mult_type = self.format_jackpot("- 667", SpecialSymbol.SKULL.value)
+            self.jackpot = True
+        elif (s1, s2, s3) == (SpecialSymbol.X.value,) * 3:
+            self.credits -= 5000
+            self.jackpot_type = self.format_jackpot("CREDIT X", "🔥")
+            self.mult_type = self.format_jackpot("- 5000", SpecialSymbol.X.value)
+            self.jackpot = True
+        elif all(s in self.SPECIAL_SYMBOLS for s in [s1, s2, s3]):
+            self.credits -= 50
+            self.jackpot_type = self.format_jackpot("OH NO...", SpecialSymbol.X.value)
+            self.mult_type = self.format_jackpot("- 50", SpecialSymbol.BOMB.value)
+            self.jackpot = True
+        elif s1 == s2 == s3:
+            self.credits += 500
+            self.jackpot_type = self.format_jackpot("CREDIT JACKPOT", "🎰")
+            self.mult_type = self.format_jackpot("+ 500", "🎰")
+            self.jackpot = True
+        elif self.colour_check(s1, s2, s3):
+            self.credits += 10
+            self.jackpot_type = self.format_jackpot("COLOUR JACKPOT", "🎰")
+            self.mult_type = self.format_jackpot("+ 10", "🎰")
+            self.jackpot = True
+        elif all(s in self.PIRATE_SYMBOLS for s in [s1, s2, s3]):
+            self.credits += 250
+            self.jackpot_type = self.format_jackpot("PIRATE JACKPOT", "🎰")
+            self.mult_type = self.format_jackpot("+ 250", "🦴")
+            self.jackpot = True
+        else:
+            self.jackpot_type = self.format_jackpot("", self.rs)
+            self.mult_type = self.format_jackpot("", self.rs)
+            self.jackpot = False
+
+        self.credits -= self.SPIN_COST
         return self.credits, self.jackpot_type, self.mult_type, self.jackpot
 
-    def play(self):
+    def play(self) -> None:
         while self.credits > 0:
             self.clear()
-            self.slot1, self.slot2, self.slot3 = self.spin_slots()
+            self.spin_slots()
             self.evaluate_spin()
             self.print_slots()
             if self.jackpot:
@@ -142,21 +151,22 @@ class SlotMachine:
             time.sleep(0.35)
             self.os, self.rs = self.rs, self.os
 
-        print("No credits left :(")
-        while True:
-            continue
+        self.game_over()
 
+    def game_over(self) -> None:
+        print("No credits left :(")
+        print("Thanks for playing!")
+        exit(0)
 
 def get_credits() -> int:
-    try:
-        credits = int(input("Enter credits: "))
-        if credits < 1:
-            raise ValueError
-        return credits
-    except ValueError:
-        print("Please enter a valid positive integer.")
-        return get_credits()
-
+    while True:
+        try:
+            credits = int(input("Enter credits: "))
+            if credits < 1:
+                raise ValueError
+            return credits
+        except ValueError:
+            print("Please enter a valid positive integer.")
 
 if __name__ == "__main__":
     credits = get_credits()
