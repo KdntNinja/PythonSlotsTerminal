@@ -91,45 +91,46 @@ def evaluate_spin(
     mult_type: str = ""
     jackpot: bool = False
 
-    if slot1 == slot2 == slot3 == "💣":
-        credits -= math.ceil(credits / 2)
-        jackpot_type = format_jackpot("CREDIT BOMB", "🔥")
-        mult_type = format_jackpot("÷ 2", "💣")
-        jackpot = True
-    elif slot1 == slot2 == slot3 == "💀":
-        credits -= 667
-        jackpot_type = format_jackpot("CREDIT SKULL", "🔥")
-        mult_type = format_jackpot("- 667", "💀")
-        jackpot = True
-    elif slot1 == slot2 == slot3 == "❌":
-        credits -= 5000
-        jackpot_type = format_jackpot("CREDIT X", "🔥")
-        mult_type = format_jackpot("- 5000", "❌")
-        jackpot = True
-    elif all(s in SPECIAL_SYMBOLS for s in [slot1, slot2, slot3]):
-        credits -= 50
-        jackpot_type = format_jackpot("OH NO...", "❌")
-        mult_type = format_jackpot("- 50", "💣")
-        jackpot = True
-    elif slot1 == slot2 == slot3:
-        credits += 500
-        jackpot_type = format_jackpot("CREDIT JACKPOT", "🎰")
-        mult_type = format_jackpot("+ 500", "🎰")
-        jackpot = True
-    elif colour_check(slot1, slot2, slot3):
-        credits += 10
-        jackpot_type = format_jackpot("COLOUR JACKPOT", "🎰")
-        mult_type = format_jackpot("+ 10", "🎰")
-        jackpot = True
-    elif all(s in PIRATE_SYMBOLS for s in [slot1, slot2, slot3]):
-        credits += 250
-        jackpot_type = format_jackpot("PIRATE JACKPOT", "🎰")
-        mult_type = format_jackpot("+ 250", "🦴")
-        jackpot = True
-    else:
-        jackpot_type = format_jackpot("", rs)
-        mult_type = format_jackpot("", rs)
-        jackpot = False
+    match (slot1, slot2, slot3):
+        case ("💣", "💣", "💣"):
+            credits -= math.ceil(credits / 2)
+            jackpot_type = format_jackpot("CREDIT BOMB", "🔥")
+            mult_type = format_jackpot("÷ 2", "💣")
+            jackpot = True
+        case ("💀", "💀", "💀"):
+            credits -= 667
+            jackpot_type = format_jackpot("CREDIT SKULL", "🔥")
+            mult_type = format_jackpot("- 667", "💀")
+            jackpot = True
+        case ("❌", "❌", "❌"):
+            credits -= 5000
+            jackpot_type = format_jackpot("CREDIT X", "🔥")
+            mult_type = format_jackpot("- 5000", "❌")
+            jackpot = True
+        case _ if all(s in SPECIAL_SYMBOLS for s in [slot1, slot2, slot3]):
+            credits -= 50
+            jackpot_type = format_jackpot("OH NO...", "❌")
+            mult_type = format_jackpot("- 50", "💣")
+            jackpot = True
+        case _ if slot1 == slot2 == slot3:
+            credits += 500
+            jackpot_type = format_jackpot("CREDIT JACKPOT", "🎰")
+            mult_type = format_jackpot("+ 500", "🎰")
+            jackpot = True
+        case _ if colour_check(slot1, slot2, slot3):
+            credits += 10
+            jackpot_type = format_jackpot("COLOUR JACKPOT", "🎰")
+            mult_type = format_jackpot("+ 10", "🎰")
+            jackpot = True
+        case _ if all(s in PIRATE_SYMBOLS for s in [slot1, slot2, slot3]):
+            credits += 250
+            jackpot_type = format_jackpot("PIRATE JACKPOT", "🎰")
+            mult_type = format_jackpot("+ 250", "🦴")
+            jackpot = True
+        case _:
+            jackpot_type = format_jackpot("", rs)
+            mult_type = format_jackpot("", rs)
+            jackpot = False
 
     credits -= 1
     return credits, jackpot_type, mult_type, jackpot
